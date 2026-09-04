@@ -1,0 +1,189 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. The palette is deliberately narrow: one ink scale, one accent,
+ * and a small set of condition hues that only ever touch the page backdrop.
+ */
+@theme {
+  --color-ink-900: #070a0f;
+  --color-ink-800: #0c111a;
+  --color-ink-700: #131a26;
+  --color-ink-600: #1b2432;
+
+  --color-mist-100: #eef1f6;
+  --color-mist-200: #cfd6e2;
+  --color-mist-300: #9aa4b8;
+  --color-mist-400: #6f7a8f;
+
+  --color-accent: #5b9dff;
+  --color-warm: #ffb347;
+  --color-cool: #64d2ff;
+
+  --font-sans:
+    'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  --radius-panel: 14px;
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+
+    /* Overridden per weather condition — see condition classes below. */
+    --sky-top: #101a2c;
+    --sky-mid: #0b111c;
+    --sky-accent: 91 157 255;
+  }
+
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background-color: var(--color-ink-900);
+    color: var(--color-mist-100);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Weather metrics read as data, so digits get a fixed advance width. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  }
+}
+
+@layer components {
+  .panel {
+    background: color-mix(in srgb, var(--color-ink-800) 82%, transparent);
+    border: 1px solid rgb(255 255 255 / 0.07);
+    border-radius: var(--radius-panel);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Fades the edge of horizontally scrolling strips instead of a hard cut. */
+  .edge-fade {
+    mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  }
+
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.16) transparent;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 0.16);
+    border-radius: 999px;
+  }
+}
+
+/*
+ * Condition palettes. Only the ambient backdrop changes; panel and text colours
+ * stay fixed so contrast never depends on the weather.
+ */
+[data-condition='CLEAR'] {
+  --sky-top: #123a6b;
+  --sky-mid: #0a1524;
+  --sky-accent: 100 210 255;
+}
+[data-condition='CLEAR'][data-daylight='false'] {
+  --sky-top: #161a3d;
+  --sky-mid: #080b16;
+  --sky-accent: 138 145 255;
+}
+[data-condition='PARTLY_CLOUDY'] {
+  --sky-top: #1b3454;
+  --sky-mid: #0a111c;
+  --sky-accent: 120 175 255;
+}
+[data-condition='CLOUDY'] {
+  --sky-top: #232c39;
+  --sky-mid: #0b0f16;
+  --sky-accent: 150 165 190;
+}
+[data-condition='FOG'] {
+  --sky-top: #2b3138;
+  --sky-mid: #0d1014;
+  --sky-accent: 170 180 195;
+}
+[data-condition='RAIN'],
+[data-condition='HEAVY_RAIN'] {
+  --sky-top: #16303f;
+  --sky-mid: #080e14;
+  --sky-accent: 100 210 255;
+}
+[data-condition='SNOW'] {
+  --sky-top: #2b3a4d;
+  --sky-mid: #0b1017;
+  --sky-accent: 190 214 240;
+}
+[data-condition='THUNDERSTORM'] {
+  --sky-top: #221a3a;
+  --sky-mid: #07070d;
+  --sky-accent: 168 140 255;
+}
+[data-condition='WIND'] {
+  --sky-top: #1d3a38;
+  --sky-mid: #090f11;
+  --sky-accent: 120 220 205;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Ambient backdrop motion. All of it is gated behind prefers-reduced-motion above. */
+@keyframes atmos-fall {
+  from {
+    transform: translate3d(0, -12vh, 0);
+  }
+  to {
+    transform: translate3d(var(--drift, 0px), 112vh, 0);
+  }
+}
+
+@keyframes atmos-drift {
+  from {
+    transform: translate3d(-12%, 0, 0);
+  }
+  to {
+    transform: translate3d(112%, 0, 0);
+  }
+}
+
+@keyframes atmos-flash {
+  0%,
+  92%,
+  100% {
+    opacity: 0;
+  }
+  93%,
+  95% {
+    opacity: 0.16;
+  }
+  94% {
+    opacity: 0.04;
+  }
+}
