@@ -26,10 +26,6 @@ export const formatHour = (epochSeconds: number, timeZone: string) =>
 export const formatWeekdayShort = (epochSeconds: number, timeZone: string) =>
   formatter(timeZone, { weekday: 'short' }).format(toDate(epochSeconds));
 
-/** "Monday 14 March" */
-export const formatDateLong = (epochSeconds: number, timeZone: string) =>
-  formatter(timeZone, { weekday: 'long', day: 'numeric', month: 'long' }).format(toDate(epochSeconds));
-
 /** "14 Mar" */
 export const formatDateShort = (epochSeconds: number, timeZone: string) =>
   formatter(timeZone, { day: 'numeric', month: 'short' }).format(toDate(epochSeconds));

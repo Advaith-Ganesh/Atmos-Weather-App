@@ -27,15 +27,3 @@ export function splitAroundNow(
 
 export const hourWindow = (data: WeatherData, pastCount = 24, futureCount = 24) =>
   splitAroundNow(data.hours, data.current.epoch, pastCount, futureCount);
-
-/** Continuous 48-hour series for the chart, oldest first. */
-export const timelineSeries = (data: WeatherData): HourPoint[] => {
-  const { past, future } = hourWindow(data);
-  return [...past, ...future];
-};
-
-export const hoursForDate = (data: WeatherData, isoDate: string, toIsoDate: (epoch: number) => string) =>
-  data.hours.filter((hour) => toIsoDate(hour.epoch) === isoDate);
-
-export const maxPrecipProbability = (hours: HourPoint[]) =>
-  hours.reduce((max, hour) => Math.max(max, hour.precipProbability), 0);

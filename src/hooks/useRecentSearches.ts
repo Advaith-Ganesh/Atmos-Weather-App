@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
-import { addRecentSearch } from '../lib/locations';
+import { addRecentSearch, isStringArray } from '../lib/locations';
 import { STORAGE_KEYS, readJson, writeJson } from '../lib/storage';
 
 export function useRecentSearches() {
-  const [recent, setRecent] = useState<string[]>(() => readJson<string[]>(STORAGE_KEYS.recent, []));
+  const [recent, setRecent] = useState<string[]>(() => readJson(STORAGE_KEYS.recent, [] as string[], isStringArray));
 
   const record = useCallback((query: string) => {
     setRecent((previous) => {
@@ -13,10 +13,5 @@ export function useRecentSearches() {
     });
   }, []);
 
-  const clear = useCallback(() => {
-    setRecent([]);
-    writeJson(STORAGE_KEYS.recent, []);
-  }, []);
-
-  return { recent, record, clear };
+  return { recent, record };
 }

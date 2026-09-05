@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { transformTimeline } from '../src/api/transform';
-import { hourWindow, maxPrecipProbability, splitAroundNow, timelineSeries } from '../src/lib/series';
+import { hourWindow, splitAroundNow } from '../src/lib/series';
 import type { HourPoint } from '../src/types/weather';
 import { londonTimeline } from './fixtures/timeline';
 
@@ -61,16 +61,12 @@ describe('windows over real transformed data', () => {
     expect(future.every((entry) => entry.epoch > data.current.epoch)).toBe(true);
   });
 
-  it('produces a contiguous 48-point chart series', () => {
-    const series = timelineSeries(data);
+  it('returns a contiguous hourly series with no gaps', () => {
+    const { past, future } = hourWindow(data);
+    const series = [...past, ...future];
     expect(series).toHaveLength(48);
     for (let index = 1; index < series.length; index += 1) {
       expect(series[index].epoch - series[index - 1].epoch).toBe(3600);
     }
-  });
-
-  it('finds the peak precipitation probability in a window', () => {
-    expect(maxPrecipProbability(hourWindow(data, 0, 24).future)).toBeGreaterThan(0);
-    expect(maxPrecipProbability([])).toBe(0);
   });
 });

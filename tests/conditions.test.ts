@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { conditionLabel, isPrecipitating, toConditionCategory, toConditionLabel } from '../src/lib/conditions';
+import { conditionLabel, toConditionCategory, toConditionLabel } from '../src/lib/conditions';
 
 describe('condition mapping', () => {
   it.each([
@@ -44,14 +44,5 @@ describe('condition labels', () => {
     expect(toConditionLabel('THUNDERSTORM', '')).toBe('Thunderstorm');
     expect(toConditionLabel('PARTLY_CLOUDY')).toBe('Partly cloudy');
     expect(conditionLabel('HEAVY_RAIN')).toBe('Heavy rain');
-  });
-});
-
-describe('isPrecipitating', () => {
-  it('is true only for wet conditions', () => {
-    expect(isPrecipitating('RAIN')).toBe(true);
-    expect(isPrecipitating('SNOW')).toBe(true);
-    expect(isPrecipitating('CLEAR')).toBe(false);
-    expect(isPrecipitating('WIND')).toBe(false);
   });
 });

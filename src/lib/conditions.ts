@@ -58,7 +58,3 @@ export function toConditionLabel(category: ConditionCategory, providerText?: str
 }
 
 export const conditionLabel = (category: ConditionCategory) => LABELS[category];
-
-/** Conditions that should trigger falling-particle backdrops. */
-export const isPrecipitating = (category: ConditionCategory) =>
-  category === 'RAIN' || category === 'HEAVY_RAIN' || category === 'SNOW' || category === 'THUNDERSTORM';
