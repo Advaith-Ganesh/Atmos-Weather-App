@@ -1,8 +1,6 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useUnits } from '../../context/unitsContext';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { formatDateShort, formatHour, relativeDayLabel } from '../../lib/time';
 import { formatSpeed, formatTemperature, windDirectionLabel } from '../../lib/units';
 import type { DayForecast as DayForecastModel, WeatherData } from '../../types/weather';
@@ -11,7 +9,6 @@ import { WeatherIcon } from '../ui/WeatherIcon';
 
 export function DailyForecast({ data }: { data: WeatherData }) {
   const units = useUnits();
-  const reducedMotion = usePrefersReducedMotion();
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const weekMin = Math.min(...data.days.map((day) => day.tempMin));
@@ -69,19 +66,19 @@ export function DailyForecast({ data }: { data: WeatherData }) {
                 />
               </button>
 
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    initial={reducedMotion ? false : { height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={reducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: 'easeOut' }}
-                    className="overflow-hidden"
-                  >
-                    <DayDetail day={day} timezone={data.location.timezone} speedUnit={units.speed} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Animating grid-template-rows between 0fr and 1fr expands to the
+                  content's natural height with no JS and no measurement. `inert`
+                  keeps the collapsed panel out of the tab order and the
+                  accessibility tree while it stays mounted for the transition. */}
+              <div
+                className={`grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out ${
+                  isOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                }`}
+              >
+                <div className="min-h-0" inert={!isOpen}>
+                  <DayDetail day={day} timezone={data.location.timezone} speedUnit={units.speed} />
+                </div>
+              </div>
             </li>
           );
         })}
