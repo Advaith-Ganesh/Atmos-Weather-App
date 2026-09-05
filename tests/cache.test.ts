@@ -44,6 +44,24 @@ describe('TtlCache', () => {
     expect(load).toHaveBeenCalledTimes(2);
   });
 
+  // Regression: a forced refresh deletes the entry, but the request it replaced
+  // was still in flight and used to write its stale result back afterwards.
+  it('does not let a discarded in-flight request repopulate the cache', async () => {
+    const cache = new TtlCache<string>(10_000);
+    let releaseStale: (value: string) => void = () => {};
+
+    const stale = cache.resolve('london', () => new Promise<string>((resolve) => (releaseStale = resolve)));
+    cache.delete('london');
+
+    const fresh = await cache.resolve('london', () => Promise.resolve('fresh'));
+    expect(fresh).toBe('fresh');
+
+    releaseStale('stale');
+    await stale;
+
+    expect(cache.get('london')).toBe('fresh');
+  });
+
   it('drops entries on delete and clear', () => {
     const cache = new TtlCache<string>(1000);
     cache.set('a', 'x');

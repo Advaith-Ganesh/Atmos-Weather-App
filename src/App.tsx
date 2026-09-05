@@ -109,7 +109,7 @@ export default function App() {
           onMoveSaved={move}
         />
 
-        {geoStatus === 'denied' && !data && !isLoading && (
+        {geoStatus === 'denied' && query === FALLBACK_LOCATION && (
           <p className="text-xs text-mist-400">
             Location access was denied, so we are showing {FALLBACK_LOCATION}. Search for anywhere else above.
           </p>

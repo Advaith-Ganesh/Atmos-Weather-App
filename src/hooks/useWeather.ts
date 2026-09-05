@@ -55,9 +55,12 @@ export function useWeather(query: string | null) {
 
   const current = result && result.query === query ? result : null;
 
+  // "refreshing" means we still have something on screen to dim. Retrying from
+  // an error screen has nothing to keep, so it reports "loading" and gets the
+  // skeleton instead of an empty page.
   const status: WeatherStatus = !query
     ? 'idle'
-    : !current
+    : !current || (refreshRequested && !current.data)
       ? 'loading'
       : refreshRequested
         ? 'refreshing'

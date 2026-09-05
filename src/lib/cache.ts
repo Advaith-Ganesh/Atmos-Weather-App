@@ -47,13 +47,15 @@ export class TtlCache<T> {
     const inFlight = this.pending.get(key);
     if (inFlight) return inFlight;
 
-    const request = load()
+    const request: Promise<T> = load()
       .then((value) => {
-        this.set(key, value);
+        // A forced refresh can drop this request while it is still in flight;
+        // storing its result would resurrect data the caller discarded.
+        if (this.pending.get(key) === request) this.set(key, value);
         return value;
       })
       .finally(() => {
-        this.pending.delete(key);
+        if (this.pending.get(key) === request) this.pending.delete(key);
       });
 
     this.pending.set(key, request);
