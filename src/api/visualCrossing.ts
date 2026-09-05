@@ -4,10 +4,9 @@ import type { VcResponse } from './visualCrossingTypes';
 const DEFAULT_BASE_URL = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline';
 
 /** Overridable so local development can point at a proxy or a stub server. */
-const baseUrl = () =>
-  (import.meta.env.VITE_VISUAL_CROSSING_BASE_URL as string | undefined)?.trim() || DEFAULT_BASE_URL;
+const baseUrl = () => import.meta.env.VITE_VISUAL_CROSSING_BASE_URL?.trim() || DEFAULT_BASE_URL;
 
-const apiKey = () => (import.meta.env.VITE_VISUAL_CROSSING_API_KEY as string | undefined)?.trim() ?? '';
+const apiKey = () => import.meta.env.VITE_VISUAL_CROSSING_API_KEY?.trim() ?? '';
 
 /** UTC date offset by `days`, formatted YYYY-MM-DD. */
 function utcDate(days: number, now = new Date()): string {
