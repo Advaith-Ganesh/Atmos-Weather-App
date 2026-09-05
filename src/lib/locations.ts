@@ -7,6 +7,23 @@ export interface SavedLocation {
   query: string;
 }
 
+const hasStringField = (value: object, field: string) =>
+  typeof (value as Record<string, unknown>)[field] === 'string';
+
+export const isSavedLocationArray = (value: unknown): value is SavedLocation[] =>
+  Array.isArray(value) &&
+  value.every(
+    (entry) =>
+      typeof entry === 'object' &&
+      entry !== null &&
+      hasStringField(entry, 'id') &&
+      hasStringField(entry, 'label') &&
+      hasStringField(entry, 'query'),
+  );
+
+export const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((entry) => typeof entry === 'string');
+
 export const MAX_SAVED_LOCATIONS = 12;
 export const MAX_RECENT_SEARCHES = 5;
 

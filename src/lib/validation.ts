@@ -2,11 +2,12 @@ const MAX_QUERY_LENGTH = 80;
 
 /**
  * Allowlist rather than blocklist: letters (any script), digits, spaces and the
- * handful of punctuation marks that appear in real place names and postcodes.
- * Everything else — markup delimiters, control characters — is rejected before
- * it reaches the URL builder.
+ * three punctuation marks that appear in real place names and postcodes —
+ * "Paris, France", "Coeur d'Alene", "Stratford-upon-Avon", "SW1A 1AA".
+ * Slashes are excluded deliberately: no city needs one, and leaving them out
+ * keeps path-shaped strings from reaching the request builder at all.
  */
-const ALLOWED_CHARACTERS = /^[\p{L}\p{N}\s,.'\-/]+$/u;
+const ALLOWED_CHARACTERS = /^[\p{L}\p{N}\s,.'-]+$/u;
 
 export type QueryValidation = { ok: true; value: string } | { ok: false; reason: string };
 

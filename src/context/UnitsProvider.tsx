@@ -3,8 +3,13 @@ import { STORAGE_KEYS, readJson, writeJson } from '../lib/storage';
 import { DEFAULT_UNITS, type SpeedUnit, type TemperatureUnit, type UnitPreferences } from '../lib/units';
 import { UnitsContext } from './unitsContext';
 
+const isObject = (value: unknown): value is Partial<UnitPreferences> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 function loadPreferences(): UnitPreferences {
-  const stored = readJson<Partial<UnitPreferences>>(STORAGE_KEYS.units, {});
+  // Unknown values fall back rather than being trusted, so a stale or edited
+  // entry can never put an unsupported unit into the formatters.
+  const stored = readJson<Partial<UnitPreferences>>(STORAGE_KEYS.units, {}, isObject);
   return {
     temperature: stored.temperature === 'F' ? 'F' : DEFAULT_UNITS.temperature,
     speed: stored.speed === 'mph' ? 'mph' : DEFAULT_UNITS.speed,

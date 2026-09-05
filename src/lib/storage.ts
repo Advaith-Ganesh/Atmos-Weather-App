@@ -4,11 +4,17 @@
  * never break the app — preferences just stop persisting.
  */
 
-export function readJson<T>(key: string, fallback: T): T {
+/**
+ * Stored JSON is untrusted: it can be hand-edited, left behind by an older
+ * version of the app, or simply corrupt. Callers pass a type guard so a bad
+ * value falls back instead of crashing the first component that reads it.
+ */
+export function readJson<T>(key: string, fallback: T, isValid: (value: unknown) => value is T): T {
   try {
     const raw = window.localStorage.getItem(key);
     if (raw === null) return fallback;
-    return JSON.parse(raw) as T;
+    const parsed: unknown = JSON.parse(raw);
+    return isValid(parsed) ? parsed : fallback;
   } catch {
     return fallback;
   }

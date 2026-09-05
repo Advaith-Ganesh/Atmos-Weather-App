@@ -1,8 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
+import { validateQuery } from '../lib/validation';
 
 const PARAM = 'q';
 
-const readParam = () => new URLSearchParams(window.location.search).get(PARAM)?.trim() || null;
+/**
+ * A shared link is untrusted input, so it goes through the same validation as
+ * the search box. Anything rejected is treated as no location at all, which
+ * falls through to geolocation.
+ */
+function readParam(): string | null {
+  const raw = new URLSearchParams(window.location.search).get(PARAM);
+  if (!raw) return null;
+  const result = validateQuery(raw);
+  return result.ok ? result.value : null;
+}
 
 /**
  * The selected location lives in the URL (`?q=Tokyo`) rather than in component
