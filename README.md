@@ -28,10 +28,13 @@ Built with React, TypeScript and the Visual Crossing Timeline API.
 - **Shareable URLs** — the selected place lives in `?q=`, so a link opens on the same location
 - **°C/°F and km/h/mph**, converted properly and remembered between visits
 - Condition-driven backdrop (rain, snow, storm, fog) that respects `prefers-reduced-motion`
+- No third-party requests at runtime: no font CDN, no analytics, no trackers
 
 ## Screenshots
 
-Not included yet — run it locally with your own key (see below).
+None committed yet. To add your own: run the app with a real key, take full-page captures of the
+dashboard on desktop and mobile, drop them in `docs/screenshots/`, and link them here. Placeholder
+images would be worse than none.
 
 ## Tech stack
 
@@ -41,7 +44,6 @@ Not included yet — run it locally with your own key (see below).
 | Vite | Dev server and build |
 | Tailwind CSS v4 | Styling, with design tokens defined in `src/index.css` |
 | Recharts | The 48-hour chart (lazy-loaded — it is the heaviest dependency) |
-| Framer Motion | Forecast row expansion |
 | Lucide React | Icon set |
 | Vitest + Testing Library | Unit and component tests |
 | oxlint | Linting |
@@ -71,8 +73,8 @@ More detail in [`docs/architecture.md`](docs/architecture.md).
 ## Getting started
 
 ```bash
-git clone https://github.com/<your-username>/atmos-weather.git
-cd atmos-weather
+git clone https://github.com/Advaith-Ganesh/Atmos-Weather-App.git
+cd Atmos-Weather-App
 npm install
 cp .env.example .env      # then paste your API key into it
 npm run dev
@@ -127,7 +129,7 @@ through the quota.
 npm test
 ```
 
-145 tests covering the parts where mistakes are expensive:
+172 tests covering the parts where mistakes are expensive:
 
 - Unit conversion (°C↔°F, km/h↔mph, distances, precipitation) and compass directions
 - Weather condition mapping from the provider's icon set, including the heavy-rain threshold
@@ -140,6 +142,8 @@ npm test
 - Search input validation, including rejected characters and overlong queries
 - Request building, HTTP status → error mapping, and that the API key never reaches an error message
 - Caching: hits, misses, forced refresh, and concurrent de-duplication
+- Stored-preference handling: corrupt, tampered and wrong-shaped `localStorage` values
+- The fetch state machine, including retry-after-failure and discarding stale responses
 - Component tests for the search bar and the current-conditions card
 
 ## Project structure
@@ -185,7 +189,43 @@ responses from superseded ones — same user-visible result, no shared-state haz
 for a single-screen app would be more code, not less.
 
 **The chart is lazy-loaded.** Recharts roughly doubles the bundle and nothing above the fold needs
-it, so it loads in its own chunk (~105 kB gzipped, versus ~120 kB for the rest of the app).
+it, so it loads in its own chunk (~105 kB gzipped, versus ~79 kB for the rest of the app).
+
+**An animation library was removed rather than kept.** The forecast rows originally expanded with
+Framer Motion. That was ~41 kB gzipped — a third of the main bundle — for one accordion, so it was
+replaced with a CSS `grid-template-rows: 0fr → 1fr` transition. The collapsed panel stays mounted for
+the transition and is marked `inert`, which keeps it out of the tab order and the accessibility tree.
+
+**No webfont.** The design uses the system font stack. That removes a render-blocking third-party
+request, the layout shift that comes with it, and the privacy question of sending every visitor's IP
+to a font CDN.
+
+## Security
+
+This is a client-only app with no backend, no accounts and no user data of its own, so the surface is
+small. The parts that do matter:
+
+- **The API key is not a secret.** Vite inlines `VITE_*` variables into the bundle, so anyone can read
+  the key from a deployed copy. The README says so plainly rather than implying otherwise, and the
+  mitigation (a proxy that keeps the key server-side, with `VITE_VISUAL_CROSSING_BASE_URL` pointed at
+  it) is documented above.
+- **Provider errors are never rendered.** Visual Crossing's 401 body echoes the submitted key back.
+  Every failure is mapped to a `WeatherError` with a fixed message, and a test asserts the key cannot
+  appear in one.
+- **Search input is allowlisted, not blocklisted.** Letters, digits, spaces and three punctuation
+  marks; everything else is rejected before it reaches the request builder. The same validation runs
+  on the `?q=` parameter, because a shared link is untrusted input too.
+- **Stored preferences are validated on read.** `localStorage` can be hand-edited or left over from an
+  older version, so values are shape-checked with type guards and fall back to defaults instead of
+  being cast and trusted.
+- **No `dangerouslySetInnerHTML` anywhere.** All provider text renders as React children, which
+  escapes it.
+- **No third-party runtime requests** — no font CDN, analytics or trackers — so there is nothing to
+  leak to and nothing to be compromised through.
+- Geolocation is requested once, on demand, via `getCurrentPosition`. There is no `watchPosition`, and
+  coordinates are rounded to four decimals (~11 m) before going into the URL or the cache key.
+
+`npm audit` reports no known vulnerabilities in the dependency tree.
 
 ## Limitations
 

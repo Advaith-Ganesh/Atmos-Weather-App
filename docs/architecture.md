@@ -107,7 +107,9 @@ enough for that.
 
 `lib/storage.ts` wraps every `localStorage` read and write in `try`/`catch`: the API throws in Safari
 private mode and in embedded browsers with site data disabled, and losing a preference should never
-break the page.
+break the page. Reads also take a type guard. Stored JSON is untrusted — it can be hand-edited, or
+left behind by an older version with a different shape — so a value that fails its guard falls back to
+the default instead of being cast and handed to a component that assumes an array of objects.
 
 ## Caching
 
@@ -138,6 +140,12 @@ lighter than a canvas or a particle library for an effect this subtle. It is gat
 `usePrefersReducedMotion` hook skips generating particles at all, and a global media query neutralises
 any animation that slips through.
 
+The forecast accordion is CSS too. Animating `grid-template-rows` between `0fr` and `1fr` expands a
+row to its content's natural height with no JavaScript and no measurement. This replaced Framer
+Motion, which cost about 41 kB gzipped — a third of the main bundle — for that one interaction. The
+collapsed panel stays mounted so the transition has something to animate, and carries `inert` so it
+is skipped by the tab order and the accessibility tree while hidden.
+
 ## Accessibility
 
 - Semantic landmarks (`header`, `main`, `footer`, labelled `section`s) and a skip link
@@ -162,3 +170,23 @@ search validation, and that unit preferences actually reach the rendered output.
 `tests/fixtures/timeline.ts` builds Visual Crossing-shaped payloads programmatically from a fixed
 seed, parameterised by timezone and offset. That gives realistic multi-day, multi-timezone data
 without a 200 KB JSON file, and keeps every assertion deterministic.
+
+## Trust boundaries
+
+Three inputs arrive from outside the app's own code, and each is checked at the edge rather than
+where it is eventually used:
+
+| Input | Threat | Where it is handled |
+| --- | --- | --- |
+| Search box | Junk or markup reaching the request builder | `validateQuery` allowlist |
+| `?q=` parameter | The same, from a link someone else wrote | `useLocationQuery` runs the same validation |
+| `localStorage` | Corrupt or hand-edited values crashing a component | Type guards in `lib/locations.ts`, applied by `readJson` |
+
+The provider's response is a fourth. It is not hostile, but it is unreliable — nulls in places the
+docs do not mention, missing `currentConditions`, empty `days` — so `transform.ts` clamps, defaults
+and throws a typed error rather than letting `undefined` reach the UI.
+
+The API key deserves an explicit note: it is inlined into the bundle by Vite and is therefore not
+secret. What the code does guarantee is narrower — the key never appears in a rendered error, because
+provider response bodies (which echo it back on a 401) are never surfaced. The README documents the
+proxy setup for anyone who needs the key to actually stay private.
