@@ -12,26 +12,10 @@ import {
 import { useUnits } from '../../context/unitsContext';
 import { hourWindow } from '../../lib/series';
 import { formatHour } from '../../lib/time';
-import { convertSpeed, convertTemperature, speedSuffix, temperatureSuffix } from '../../lib/units';
 import type { WeatherData } from '../../types/weather';
 import { Panel } from '../ui/Panel';
 import { SegmentedControl } from '../ui/SegmentedControl';
-
-type Metric = 'temperature' | 'precipitation' | 'wind' | 'humidity';
-
-const METRIC_OPTIONS = [
-  { value: 'temperature', label: 'Temp' },
-  { value: 'precipitation', label: 'Rain' },
-  { value: 'wind', label: 'Wind' },
-  { value: 'humidity', label: 'Humidity' },
-] as const;
-
-const METRIC_COLOURS: Record<Metric, string> = {
-  temperature: '#5b9dff',
-  precipitation: '#64d2ff',
-  wind: '#7ee0c8',
-  humidity: '#a88cff',
-};
+import { CHART_METRICS, METRIC_OPTIONS, type Metric } from './chartMetrics';
 
 interface ChartPoint {
   epoch: number;
@@ -45,46 +29,26 @@ export function WeatherChart({ data }: { data: WeatherData }) {
   const units = useUnits();
   const [metric, setMetric] = useState<Metric>('temperature');
 
-  const { points, nowEpoch, unitLabel } = useMemo(() => {
+  const definition = CHART_METRICS[metric];
+
+  const { points, nowEpoch } = useMemo(() => {
     const { past, future } = hourWindow(data);
     const series = [...past, ...future];
-
-    const suffix =
-      metric === 'temperature'
-        ? temperatureSuffix(units.temperature)
-        : metric === 'wind'
-          ? ` ${speedSuffix(units.speed)}`
-          : '%';
-
-    const value = (hour: (typeof series)[number]) => {
-      switch (metric) {
-        case 'temperature':
-          return Math.round(convertTemperature(hour.temperature, units.temperature) * 10) / 10;
-        case 'wind':
-          return Math.round(convertSpeed(hour.windSpeed, units.speed));
-        case 'precipitation':
-          return Math.round(hour.precipProbability);
-        case 'humidity':
-          return Math.round(hour.humidity);
-      }
-    };
 
     return {
       points: series.map<ChartPoint>((hour, index) => ({
         epoch: hour.epoch,
         time: formatHour(hour.epoch, data.location.timezone),
-        value: value(hour),
+        value: definition.value(hour, units),
         condition: hour.conditionLabel,
         isPast: index < past.length,
       })),
       nowEpoch: past.at(-1)?.epoch ?? series[0]?.epoch ?? 0,
-      unitLabel: suffix,
     };
-  }, [data, metric, units.temperature, units.speed]);
+  }, [data, definition, units]);
 
-  const colour = METRIC_COLOURS[metric];
-  const bounded = metric === 'precipitation' || metric === 'humidity';
-  const activeLabel = METRIC_OPTIONS.find((option) => option.value === metric)?.label ?? metric;
+  const { colour, bounded, label: activeLabel } = definition;
+  const unitLabel = definition.unitLabel(units);
 
   return (
     <Panel
