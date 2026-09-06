@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { WeatherBackdrop } from './components/atmosphere/WeatherBackdrop';
 import { Header } from './components/layout/Header';
 import { LocationBar } from './components/search/LocationBar';
@@ -42,6 +42,10 @@ export default function App() {
   const online = useOnlineStatus();
 
   const bootstrapped = useRef(false);
+  // Captured once, at mount. Replacing the URL with the fallback clears
+  // `rejectedLink`, so the notice below has to remember how this visit started
+  // rather than re-deriving it from state that no longer says so.
+  const [startedFromRejectedLink] = useState(rejectedLink);
 
   // First visit with no `?q=`: try the browser's location once, then fall back.
   // A link whose `q` we rejected skips geolocation — the user already asked for
@@ -85,7 +89,7 @@ export default function App() {
   }, [locate, setQuery]);
 
   const showingFallback = query === FALLBACK_LOCATION;
-  const notice = rejectedLink && showingFallback
+  const notice = startedFromRejectedLink && showingFallback
     ? `That link didn't contain a location we could use, so we are showing ${FALLBACK_LOCATION}.`
     : geoStatus === 'denied' && showingFallback
       ? `Location access was denied, so we are showing ${FALLBACK_LOCATION}. Search for anywhere else above.`
