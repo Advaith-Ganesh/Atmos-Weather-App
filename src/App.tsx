@@ -13,6 +13,7 @@ import { DashboardSkeleton } from './components/ui/DashboardSkeleton';
 import { ErrorState } from './components/ui/ErrorState';
 import { useGeolocation } from './hooks/useGeolocation';
 import { useLocationQuery } from './hooks/useLocationQuery';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useRecentSearches } from './hooks/useRecentSearches';
 import { useSavedLocations } from './hooks/useSavedLocations';
 import { useWeather } from './hooks/useWeather';
@@ -38,6 +39,7 @@ export default function App() {
   const { saved, add, remove, move } = useSavedLocations();
   const { recent, record } = useRecentSearches();
   const units = useUnits();
+  const online = useOnlineStatus();
 
   const bootstrapped = useRef(false);
 
@@ -61,6 +63,13 @@ export default function App() {
     if (!data || !query) return;
     record(isCoordinateQuery(query) ? data.location.name : query);
   }, [data, query, record]);
+
+  // Coming back online is the one signal that a failed request is now worth
+  // repeating, so the user does not have to notice and press retry themselves.
+  const failedWhileOffline = status === 'error' && (error?.code === 'OFFLINE' || error?.code === 'NETWORK');
+  useEffect(() => {
+    if (online && failedWhileOffline) refresh();
+  }, [online, failedWhileOffline, refresh]);
 
   useEffect(() => {
     document.title = data

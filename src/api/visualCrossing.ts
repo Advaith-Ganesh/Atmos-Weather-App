@@ -50,6 +50,13 @@ export async function fetchTimeline(location: string): Promise<VcResponse> {
   const key = apiKey();
   if (!key) throw new WeatherError('MISSING_API_KEY');
 
+  // Only the negative is trustworthy: `false` means the browser knows there is
+  // no connection, so the request would fail anyway. `true` proves nothing, and
+  // a real failure still falls through to the NETWORK branch below.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    throw new WeatherError('OFFLINE');
+  }
+
   let response: Response;
   try {
     response = await fetch(buildRequestUrl(trimmed, key));

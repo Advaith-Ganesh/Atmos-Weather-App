@@ -5,6 +5,7 @@ export type WeatherErrorCode =
   | 'LOCATION_NOT_FOUND'
   | 'RATE_LIMITED'
   | 'NETWORK'
+  | 'OFFLINE'
   | 'PROVIDER_UNAVAILABLE'
   | 'NO_DATA'
   | 'UNKNOWN';
@@ -17,6 +18,7 @@ const MESSAGES: Record<WeatherErrorCode, string> = {
   LOCATION_NOT_FOUND: "We couldn't find that location. Try a city name, or add a country — for example “Manchester, UK”.",
   RATE_LIMITED: 'Daily request limit reached for this API key. Try again later or upgrade your Visual Crossing plan.',
   NETWORK: "Couldn't reach the weather service. Check your connection and try again.",
+  OFFLINE: "You appear to be offline. Atmos will load the forecast as soon as you're back.",
   PROVIDER_UNAVAILABLE: 'The weather service is temporarily unavailable. Please try again in a moment.',
   NO_DATA: 'No weather data is available for that location right now.',
   UNKNOWN: 'Something went wrong while loading the weather. Please try again.',
