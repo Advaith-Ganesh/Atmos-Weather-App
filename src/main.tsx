@@ -1,13 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { UnitsProvider } from './context/UnitsProvider';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
+const container = document.getElementById('root');
+if (!container) throw new Error('Root element #root is missing from index.html');
+
+createRoot(container).render(
   <StrictMode>
-    <UnitsProvider>
-      <App />
-    </UnitsProvider>
+    <ErrorBoundary>
+      <UnitsProvider>
+        <App />
+      </UnitsProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );
