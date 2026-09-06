@@ -171,6 +171,21 @@ search validation, and that unit preferences actually reach the rendered output.
 seed, parameterised by timezone and offset. That gives realistic multi-day, multi-timezone data
 without a 200 KB JSON file, and keeps every assertion deterministic.
 
+## Failure handling
+
+Three layers, each catching what the one below cannot:
+
+1. **`WeatherError`** covers everything the data path can predict — a missing or rejected key, an
+   unknown location, a rate limit, no connection, an unusable payload. Each maps to one fixed message,
+   so the UI has a single failure shape and provider text is never rendered.
+2. **The offline check** sits in front of the request. `navigator.onLine === false` means the browser
+   knows there is no connection, so the request is skipped rather than spent, and the failure is
+   labelled precisely. When the `online` event fires, `App` repeats the failed request automatically —
+   the user does not have to notice and press retry.
+3. **The error boundary** catches what neither can see: an exception thrown while rendering. Without
+   it React unmounts the tree and leaves a blank page. It renders a recovery screen and logs the
+   error to the console; the message itself is never shown, since it is developer-facing.
+
 ## Trust boundaries
 
 Three inputs arrive from outside the app's own code, and each is checked at the edge rather than

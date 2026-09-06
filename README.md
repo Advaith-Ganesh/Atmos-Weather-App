@@ -28,6 +28,7 @@ Built with React, TypeScript and the Visual Crossing Timeline API.
 - **Shareable URLs** — the selected place lives in `?q=`, so a link opens on the same location
 - **°C/°F and km/h/mph**, converted properly and remembered between visits
 - Condition-driven backdrop (rain, snow, storm, fog) that respects `prefers-reduced-motion`
+- **Offline aware** — fails fast without spending a request, and reloads by itself once you reconnect
 - No third-party requests at runtime: no font CDN, no analytics, no trackers
 
 ## Screenshots
@@ -129,7 +130,7 @@ through the quota.
 npm test
 ```
 
-172 tests covering the parts where mistakes are expensive:
+218 tests covering the parts where mistakes are expensive:
 
 - Unit conversion (°C↔°F, km/h↔mph, distances, precipitation) and compass directions
 - Weather condition mapping from the provider's icon set, including the heavy-rain threshold
@@ -144,6 +145,10 @@ npm test
 - Caching: hits, misses, forced refresh, and concurrent de-duplication
 - Stored-preference handling: corrupt, tampered and wrong-shaped `localStorage` values
 - The fetch state machine, including retry-after-failure and discarding stale responses
+- Offline detection and the online/offline event handling
+- URL parameter parsing, including hostile values and the back button
+- The error boundary, and that a caught error is never shown to the user
+- Chart metric definitions, and the chart's accessible table
 - Component tests for the search bar and the current-conditions card
 
 ## Project structure
@@ -199,6 +204,14 @@ the transition and is marked `inert`, which keeps it out of the tab order and th
 **No webfont.** The design uses the system font stack. That removes a render-blocking third-party
 request, the layout shift that comes with it, and the privacy question of sending every visitor's IP
 to a font CDN.
+
+**The chart has a text alternative, not an ARIA label.** A 48-point series cannot be summarised
+usefully in one string, so the same data is published as a visually hidden table with a caption
+naming the range, high, low and timezone. The SVG itself is `aria-hidden`.
+
+**Only `navigator.onLine === false` is trusted.** A `true` value means a network interface is up, not
+that a request will succeed, so it is used to trigger a retry rather than to predict success — real
+failures still fall through to the normal network-error path.
 
 ## Security
 
