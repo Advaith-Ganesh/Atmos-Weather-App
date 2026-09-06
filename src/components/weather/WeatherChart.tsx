@@ -84,6 +84,7 @@ export function WeatherChart({ data }: { data: WeatherData }) {
 
   const colour = METRIC_COLOURS[metric];
   const bounded = metric === 'precipitation' || metric === 'humidity';
+  const activeLabel = METRIC_OPTIONS.find((option) => option.value === metric)?.label ?? metric;
 
   return (
     <Panel
@@ -98,7 +99,7 @@ export function WeatherChart({ data }: { data: WeatherData }) {
         />
       }
     >
-      <div className="h-56 w-full">
+      <div className="h-56 w-full" aria-hidden>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
             <defs>
@@ -147,6 +148,8 @@ export function WeatherChart({ data }: { data: WeatherData }) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      <ChartTable points={points} label={activeLabel} unitLabel={unitLabel} timezone={data.location.timezone} />
     </Panel>
   );
 }
@@ -174,5 +177,59 @@ function ChartTooltip({ active, payload, unitLabel }: ChartTooltipProps) {
       </p>
       <p className="mt-0.5 text-mist-400">{point.condition}</p>
     </div>
+  );
+}
+
+interface ChartTableProps {
+  points: ChartPoint[];
+  label: string;
+  unitLabel: string;
+  timezone: string;
+}
+
+/**
+ * The chart itself is an SVG that conveys nothing to a screen reader, so the
+ * same series is also published as a table. It is visually hidden rather than
+ * omitted: 48 rows are quick to skim with table navigation, and this is the
+ * only way a non-sighted user can read the figures at all.
+ */
+function ChartTable({ points, label, unitLabel, timezone }: ChartTableProps) {
+  if (points.length === 0) return null;
+
+  const values = points.map((point) => point.value);
+  const peak = points[values.indexOf(Math.max(...values))];
+  const low = points[values.indexOf(Math.min(...values))];
+
+  return (
+    <table className="sr-only">
+      <caption>
+        {label} over 48 hours, from 24 hours ago to 24 hours ahead, in local time for {timezone}. Highest{' '}
+        {peak.value}
+        {unitLabel} at {peak.time}, lowest {low.value}
+        {unitLabel} at {low.time}.
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Time</th>
+          <th scope="col">{label}</th>
+          <th scope="col">Conditions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {points.map((point) => (
+          <tr key={point.epoch}>
+            <th scope="row">
+              {point.time}
+              {point.isPast ? ' (observed)' : ''}
+            </th>
+            <td>
+              {point.value}
+              {unitLabel}
+            </td>
+            <td>{point.condition}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
