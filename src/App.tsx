@@ -32,7 +32,7 @@ const WeatherChart = lazy(() =>
 const FALLBACK_LOCATION = 'London';
 
 export default function App() {
-  const [query, setQuery] = useLocationQuery();
+  const { query, rejectedLink, setQuery } = useLocationQuery();
   const { data, error, status, isLoading, isRefreshing, refresh } = useWeather(query);
   const { locate, status: geoStatus } = useGeolocation();
   const { saved, add, remove, move } = useSavedLocations();
@@ -42,11 +42,18 @@ export default function App() {
   const bootstrapped = useRef(false);
 
   // First visit with no `?q=`: try the browser's location once, then fall back.
+  // A link whose `q` we rejected skips geolocation — the user already asked for
+  // a specific place, so a permission prompt would only delay the fallback.
   useEffect(() => {
     if (bootstrapped.current || query) return;
     bootstrapped.current = true;
+
+    if (rejectedLink) {
+      setQuery(FALLBACK_LOCATION, { replace: true });
+      return;
+    }
     void locate().then((coordinates) => setQuery(coordinates ?? FALLBACK_LOCATION, { replace: true }));
-  }, [query, locate, setQuery]);
+  }, [query, rejectedLink, locate, setQuery]);
 
   // Recent searches store something a human can read back — the resolved city
   // name for a geolocation pin, otherwise exactly what was typed.
@@ -67,6 +74,13 @@ export default function App() {
     const coordinates = await locate();
     if (coordinates) setQuery(coordinates);
   }, [locate, setQuery]);
+
+  const showingFallback = query === FALLBACK_LOCATION;
+  const notice = rejectedLink && showingFallback
+    ? `That link didn't contain a location we could use, so we are showing ${FALLBACK_LOCATION}.`
+    : geoStatus === 'denied' && showingFallback
+      ? `Location access was denied, so we are showing ${FALLBACK_LOCATION}. Search for anywhere else above.`
+      : null;
 
   const toggleSaved = useCallback(() => {
     if (!data || !query) return;
@@ -109,9 +123,9 @@ export default function App() {
           onMoveSaved={move}
         />
 
-        {geoStatus === 'denied' && query === FALLBACK_LOCATION && (
-          <p className="text-xs text-mist-400">
-            Location access was denied, so we are showing {FALLBACK_LOCATION}. Search for anywhere else above.
+        {notice && (
+          <p className="text-xs text-mist-400" role="status">
+            {notice}
           </p>
         )}
 
