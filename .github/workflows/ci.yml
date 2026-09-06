@@ -5,6 +5,12 @@ on:
     branches: ['**']
   pull_request:
 
+# A new push makes the run it superseded pointless; cancelling it frees the
+# runner and gets feedback on the current commit sooner.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     name: Lint, test and build
