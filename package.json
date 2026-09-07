@@ -1,16 +1,33 @@
 {
   "name": "atmos-weather",
   "version": "1.0.0",
-  "description": "A weather app built with React, TypeScript and the Visual Crossing Timeline API.",
+  "description": "Weather for anywhere, rendered in the local time of the place you searched. React, TypeScript and the Visual Crossing Timeline API.",
+  "keywords": [
+    "weather",
+    "forecast",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss",
+    "visual-crossing",
+    "timezone",
+    "accessibility",
+    "recharts"
+  ],
+  "author": "Advaith Ganesh",
   "license": "MIT",
-  "private": true,
-  "type": "module",
-  "engines": {
-    "node": ">=20"
+  "homepage": "https://github.com/Advaith-Ganesh/Atmos-Weather-App#readme",
+  "bugs": {
+    "url": "https://github.com/Advaith-Ganesh/Atmos-Weather-App/issues"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/Advaith-Ganesh/Atmos-Weather-App.git"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
   },
   "scripts": {
     "dev": "vite",
