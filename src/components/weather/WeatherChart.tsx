@@ -164,36 +164,41 @@ function ChartTable({ points, label, unitLabel, timezone }: ChartTableProps) {
   const peak = points[values.indexOf(Math.max(...values))];
   const low = points[values.indexOf(Math.min(...values))];
 
+  // The wrapper carries `sr-only`, not the table: a table box does not shrink
+  // below its min-content width and does not reliably honour `overflow:hidden`,
+  // so an `sr-only` table escapes clipping and widens the whole page.
   return (
-    <table className="sr-only">
-      <caption>
-        {label} over 48 hours, from 24 hours ago to 24 hours ahead, in local time for {timezone}. Highest{' '}
-        {peak.value}
-        {unitLabel} at {peak.time}, lowest {low.value}
-        {unitLabel} at {low.time}.
-      </caption>
-      <thead>
-        <tr>
-          <th scope="col">Time</th>
-          <th scope="col">{label}</th>
-          <th scope="col">Conditions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {points.map((point) => (
-          <tr key={point.epoch}>
-            <th scope="row">
-              {point.time}
-              {point.isPast ? ' (observed)' : ''}
-            </th>
-            <td>
-              {point.value}
-              {unitLabel}
-            </td>
-            <td>{point.condition}</td>
+    <div className="sr-only">
+      <table>
+        <caption>
+          {label} over 48 hours, from 24 hours ago to 24 hours ahead, in local time for {timezone}. Highest{' '}
+          {peak.value}
+          {unitLabel} at {peak.time}, lowest {low.value}
+          {unitLabel} at {low.time}.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Time</th>
+            <th scope="col">{label}</th>
+            <th scope="col">Conditions</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {points.map((point) => (
+            <tr key={point.epoch}>
+              <th scope="row">
+                {point.time}
+                {point.isPast ? ' (observed)' : ''}
+              </th>
+              <td>
+                {point.value}
+                {unitLabel}
+              </td>
+              <td>{point.condition}</td>
+            </tr>
+          ))}
+          </tbody>
+      </table>
+    </div>
   );
 }
