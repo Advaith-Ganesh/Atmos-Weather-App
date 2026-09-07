@@ -60,6 +60,17 @@ describe('WeatherChart accessibility', () => {
     expect(screen.getByRole('table').querySelector('caption')?.textContent).toMatch(/Humidity over 48 hours/);
   });
 
+  // Regression: sr-only was on the table itself, which does not shrink below its
+  // min-content width, so it escaped clipping and widened the document.
+  it('keeps the visually hidden wrapper on a div, never on the table', () => {
+    const { container } = renderChart();
+    const table = screen.getByRole('table');
+
+    expect(table).not.toHaveClass('sr-only');
+    expect(table.parentElement).toHaveClass('sr-only');
+    expect(container.querySelectorAll('table.sr-only')).toHaveLength(0);
+  });
+
   it('hides the decorative chart from assistive technology', () => {
     const { container } = renderChart();
     expect(container.querySelector('[aria-hidden="true"]')).toBeTruthy();
