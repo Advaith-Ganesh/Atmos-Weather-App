@@ -1,17 +1,11 @@
 import { Cloud, Compass, Droplets, Eye, Gauge, Sun, Umbrella, Waves } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useUnits } from '../../context/unitsContext';
+import { describePressure, describeUvIndex, describeVisibility } from '../../lib/descriptors';
 import { hourWindow } from '../../lib/series';
 import { formatDistance, formatPrecipitation, formatSpeed, windDirectionLabel } from '../../lib/units';
 import type { WeatherData } from '../../types/weather';
 import { Panel } from '../ui/Panel';
-
-const uvDescription = (uv: number) =>
-  uv >= 11 ? 'Extreme' : uv >= 8 ? 'Very high' : uv >= 6 ? 'High' : uv >= 3 ? 'Moderate' : 'Low';
-
-const pressureTrend = (hPa: number) => (hPa >= 1023 ? 'High' : hPa <= 1009 ? 'Low' : 'Normal');
-
-const visibilityDescription = (km: number) => (km >= 10 ? 'Clear' : km >= 4 ? 'Moderate' : km >= 1 ? 'Poor' : 'Very poor');
 
 export function WeatherDetails({ data }: { data: WeatherData }) {
   const units = useUnits();
@@ -32,19 +26,19 @@ export function WeatherDetails({ data }: { data: WeatherData }) {
           icon={<Sun className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />}
           label="UV index"
           value={`${Math.round(current.uvIndex)}`}
-          note={uvDescription(current.uvIndex)}
+          note={describeUvIndex(current.uvIndex)}
         />
         <Metric
           icon={<Eye className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />}
           label="Visibility"
           value={formatDistance(current.visibility, units.speed)}
-          note={visibilityDescription(current.visibility)}
+          note={describeVisibility(current.visibility)}
         />
         <Metric
           icon={<Gauge className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />}
           label="Pressure"
           value={`${Math.round(current.pressure)} hPa`}
-          note={pressureTrend(current.pressure)}
+          note={describePressure(current.pressure)}
         />
         <Metric
           icon={<Cloud className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />}
