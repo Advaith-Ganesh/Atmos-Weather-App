@@ -18,6 +18,8 @@ export interface TimelineOptions {
   /** Local hour of `currentConditions` on the second day. */
   currentHour?: number;
   icon?: string;
+  /** Mean temperature in °C, so a fixture can represent a different climate. */
+  baseTemperature?: number;
 }
 
 const HOUR = 3600;
@@ -31,10 +33,10 @@ const addDays = (isoDate: string, days: number) => {
   return date.toISOString().slice(0, 10);
 };
 
-function hour(epoch: number, index: number, icon: string): VcHour {
+function hour(epoch: number, index: number, icon: string, baseTemperature: number): VcHour {
   const hourOfDay = ((index % 24) + 24) % 24;
   // Simple diurnal curve: coldest at 04:00, warmest at 16:00.
-  const temp = Math.round((15 + 6 * Math.sin(((hourOfDay - 10) / 24) * 2 * Math.PI)) * 10) / 10;
+  const temp = Math.round((baseTemperature + 6 * Math.sin(((hourOfDay - 10) / 24) * 2 * Math.PI)) * 10) / 10;
   return {
     datetimeEpoch: epoch,
     temp,
@@ -56,14 +58,23 @@ function hour(epoch: number, index: number, icon: string): VcHour {
 }
 
 export function buildTimeline(options: TimelineOptions): VcResponse {
-  const { timezone, offsetHours, resolvedAddress, firstDate, days = 8, currentHour = 13, icon = 'partly-cloudy-day' } = options;
+  const {
+    timezone,
+    offsetHours,
+    resolvedAddress,
+    firstDate,
+    days = 8,
+    currentHour = 13,
+    icon = 'partly-cloudy-day',
+    baseTemperature = 15,
+  } = options;
 
   const firstMidnightUtc = Date.parse(`${firstDate}T00:00:00Z`) / 1000 - offsetHours * HOUR;
 
   const vcDays: VcDay[] = Array.from({ length: days }, (_, dayIndex) => {
     const dayStart = firstMidnightUtc + dayIndex * DAY;
     const hours = Array.from({ length: 24 }, (_, hourIndex) =>
-      hour(dayStart + hourIndex * HOUR, hourIndex, icon),
+      hour(dayStart + hourIndex * HOUR, hourIndex, icon, baseTemperature),
     );
     const temps = hours.map((entry) => entry.temp as number);
 
@@ -103,7 +114,10 @@ export function buildTimeline(options: TimelineOptions): VcResponse {
     timezone,
     tzoffset: offsetHours,
     days: vcDays,
-    currentConditions: { ...hour(currentEpoch, currentHour, icon), conditions: 'Partially cloudy' },
+    currentConditions: {
+      ...hour(currentEpoch, currentHour, icon, baseTemperature),
+      conditions: 'Partially cloudy',
+    },
   };
 }
 
