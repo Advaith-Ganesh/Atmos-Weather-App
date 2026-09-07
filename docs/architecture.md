@@ -4,20 +4,25 @@ Notes on how Atmos is put together, for anyone reading the code (including me in
 
 ## Layers
 
-```
-┌─────────────────────────────────────────────┐
-│ components/         presentation only       │
-├─────────────────────────────────────────────┤
-│ hooks/ + context/   state and side effects  │
-├─────────────────────────────────────────────┤
-│ api/weatherService  caching + de-duplication│
-├─────────────────────────────────────────────┤
-│ api/visualCrossing  HTTP, URL building      │
-│ api/transform       provider → domain model │
-├─────────────────────────────────────────────┤
-│ types/weather       the only shape the UI   │
-│                     ever sees               │
-└─────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    C["<b>components/</b><br/>presentation only"]
+    H["<b>hooks/ + context/</b><br/>state and side effects"]
+    S["<b>api/weatherService</b><br/>caching + in-flight de-duplication"]
+    N["<b>api/visualCrossing</b> — HTTP, URL building, error mapping<br/><b>api/transform</b> — provider shape → domain model"]
+    T["<b>types/weather</b><br/>the only shape the UI ever sees"]
+    L["<b>lib/</b><br/>pure functions<br/>no React, no I/O"]
+
+    C --> H --> S --> N --> T
+    T -.->|consumed by| C
+    L -.-> C
+    L -.-> H
+    L -.-> N
+
+    classDef pure fill:#101a14,stroke:#7ee0c8,color:#e8ebf0
+    classDef boundary fill:#0d1520,stroke:#5b9dff,stroke-width:2px,color:#e8ebf0
+    class L pure
+    class T boundary
 ```
 
 `lib/` sits beside all of this: pure functions with no React and no I/O (units, timezone formatting,
@@ -32,16 +37,17 @@ The provider's shape stops at `transform.ts`.
 A search, a saved-location click, a geolocation fix and a page load with `?q=` all end in the same
 place — the query string in the URL.
 
-```
-user action
-   → useLocationQuery writes ?q=… via history.pushState
-   → useWeather(query) fires
-   → getWeather(query)
-       → cache hit?  → return immediately
-       → in flight?  → join the existing promise
-       → otherwise   → fetchTimeline() → transformTimeline() → cache → return
-   → setResult({ query, data, error })
-   → components render
+```mermaid
+flowchart LR
+    A["Search, saved chip,<br/>geolocation, or a<br/>shared link"] --> B["useLocationQuery<br/>writes ?q= via pushState"]
+    B --> C["useWeather(query)"]
+    C --> D{"getWeather"}
+    D -->|cached and fresh| G["WeatherData"]
+    D -->|already in flight| E["join the existing promise"] --> G
+    D -->|miss| F["fetchTimeline<br/>→ transformTimeline<br/>→ cache"] --> G
+    G --> H{"still the<br/>current request?"}
+    H -->|no| I["discard"]
+    H -->|yes| J["setResult → render"]
 ```
 
 `useWeather` stores only *settled* results, each tagged with the query it belongs to. "Loading" is
