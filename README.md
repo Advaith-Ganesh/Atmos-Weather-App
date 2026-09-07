@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-323-success)
+![Tests](https://img.shields.io/badge/tests-363-success)
 
 </div>
 
@@ -174,7 +174,7 @@ Full notes, including the trust boundaries and the failure-handling layers, are 
 | Styling | **Tailwind CSS v4** | Design tokens declared in `@theme`; no separate config file |
 | Charts | **Recharts** | Lazy-loaded — it is the heaviest dependency and nothing above the fold needs it |
 | Icons | **Lucide React** | Tree-shakeable, consistent stroke weight |
-| Tests | **Vitest** + **Testing Library** | 323 tests across pure logic, hooks and components |
+| Tests | **Vitest** + **Testing Library** | 363 tests across pure logic, hooks and components, with a coverage gate |
 | Lint | **oxlint** | Fast; warnings fail the build, same as CI |
 | Data | **Visual Crossing Timeline API** | One request returns history, current conditions and forecast together |
 
@@ -321,7 +321,7 @@ npm run test:watch    # watch mode
 npm run test:coverage # with coverage
 ```
 
-**323 tests across 33 files**, concentrated where a mistake would be silent rather than loud.
+**363 tests across 36 files**, concentrated where a mistake would be silent rather than loud.
 
 <details>
 <summary><b>What is covered</b></summary>
