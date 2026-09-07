@@ -12,7 +12,16 @@ export default defineConfig({
     include: ['tests/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
-      include: ['src/api/**', 'src/lib/**'],
+      // The layers where a regression is silent rather than visible on screen.
+      include: ['src/api/**', 'src/lib/**', 'src/hooks/**'],
+      // Set just below the current figures so the gate catches a real drop
+      // without failing on noise.
+      thresholds: {
+        statements: 95,
+        branches: 85,
+        functions: 95,
+        lines: 95,
+      },
     },
   },
 });
