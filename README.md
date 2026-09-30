@@ -82,7 +82,7 @@ still looking like a real product.
 | **Unit switching** | °C/°F and km/h/mph, converted properly and remembered. |
 | **Offline aware** | Fails fast without spending a request, and reloads by itself once you reconnect. |
 | **Accessible** | Semantic landmarks, keyboard operable throughout, `prefers-reduced-motion` respected, text alternatives for every visual-only element. |
-| **No third-party runtime requests** | No font CDN, no analytics, no trackers. |
+| **No font or analytics requests** | Weather searches contact Visual Crossing; no font CDN, analytics, or trackers. |
 
 ---
 
@@ -185,7 +185,8 @@ cost ~41 kB gzipped for a single accordion — see [Technical decisions](#techni
 
 ## Getting started
 
-**Prerequisites:** Node.js 20 or newer.
+**Prerequisites:** Node.js 22.22.2+ within v22, 24.15.0+ within v24, or v26+.
+The locked test dependencies do not support Node.js 20. CI checks v22 and v24.
 
 ```bash
 git clone https://github.com/Advaith-Ganesh/Atmos-Weather-App.git
@@ -373,11 +374,11 @@ small. What matters:
 - **Stored preferences are validated on read.** `localStorage` can be hand-edited or left over from
   an older version, so values are shape-checked with type guards and fall back to defaults.
 - **No `dangerouslySetInnerHTML` anywhere.** All provider text renders as React children, escaped.
-- **No third-party runtime requests** — nothing to leak to, nothing to be compromised through.
+- **No font CDN or analytics requests.** Weather queries and on-demand geolocation coordinates are sent to Visual Crossing; preferences stay in the browser.
 - **Geolocation is requested once, on demand.** No `watchPosition`; coordinates are rounded to four
   decimals (~11 m) before entering the URL or the cache key.
 
-`npm audit` reports no known vulnerabilities. Reporting details are in
+Run `npm audit` to check the current dependency state. Reporting details are in
 [`SECURITY.md`](SECURITY.md).
 
 ---
