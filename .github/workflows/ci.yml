@@ -19,9 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # package.json declares engines.node >= 20, so both ends of that claim
-        # are actually exercised rather than asserted.
-        node: [20, 22]
+        # Check both supported Node.js LTS majors against the locked dependencies.
+        node: [22, 24]
 
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +40,7 @@ jobs:
         run: npm run typecheck
 
       - name: Test
-        run: npm test
+        run: npm run test:coverage
 
       - name: Build
         # The build needs the variable to exist, not to be valid — no request is
